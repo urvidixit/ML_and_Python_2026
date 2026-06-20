@@ -1,0 +1,100 @@
+#  Part A: Understanding the Dataset
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# Load dataset
+df = pd.read_csv("agriculture_yield.csv")
+
+# Q1: Dataset Overview
+print("Shape:", df.shape)
+print("Columns:", df.columns.tolist())
+print(df.head(10))
+
+# Q2: Data Types and Missing Values
+print(df.dtypes)
+print("Missing values:\n", df.isnull().sum())
+
+# Q3: Descriptive Statistics
+print(df.describe())
+print("Highest mean:", df.mean().idxmax())
+print("Highest std:", df.std().idxmax())
+
+#  Part B: Exploratory Data Analysis (EDA)
+
+# Q4: Histograms
+features = ["rainfall_mm", "temperature_c", "fertilizer_kg", "yield_ton_per_hectare"]
+for col in features:
+    plt.hist(df[col], bins=20, edgecolor="black")
+    plt.title(f"Histogram of {col}")
+    plt.show()
+
+# Q5: Crop Type Analysis
+print(df["crop_type"].value_counts())
+sns.countplot(x="crop_type", data=df)
+plt.show()
+
+# Q6: Soil Type Analysis
+print(df["soil_type"].value_counts())
+sns.countplot(x="soil_type", data=df)
+plt.show()
+
+# Q7: Yield Distribution
+plt.hist(df["yield_ton_per_hectare"], bins=20, edgecolor="black")
+plt.title("Yield Distribution")
+plt.show()
+
+# Q8: Scatter Plots
+sns.scatterplot(x="rainfall_mm", y="yield_ton_per_hectare", data=df)
+plt.show()
+
+sns.scatterplot(x="fertilizer_kg", y="yield_ton_per_hectare", data=df)
+plt.show()
+
+# Q9: Correlation Analysis
+corr = df.corr()
+print(corr["yield_ton_per_hectare"].sort_values(ascending=False))
+sns.heatmap(corr, annot=True, cmap="coolwarm")
+plt.show()
+
+# Q10: Group-Based Analysis
+print("Average yield per crop:\n", df.groupby("crop_type")["yield_ton_per_hectare"].mean())
+print("Average yield per soil type:\n", df.groupby("soil_type")["yield_ton_per_hectare"].mean())
+
+#  Part C: Data Preparation
+
+# Q11: Feature Encoding
+categorical_cols = df.select_dtypes(include=["object"]).columns
+print("Categorical columns:", categorical_cols)
+
+df_encoded = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+print(df_encoded.head())
+
+# Q12: Feature Selection
+X = df_encoded.drop("yield_ton_per_hectare", axis=1)
+y = df_encoded["yield_ton_per_hectare"]
+
+print("Input features:", X.columns.tolist())
+print("Target variable: yield_ton_per_hectare")
+
+#  Part D: Machine Learning
+
+# Q13: Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print("X_train:", X_train.shape)
+print("X_test:", X_test.shape)
+print("y_train:", y_train.shape)
+print("y_test:", y_test.shape)
+
+# Q14: Linear Regression Model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+print("Coefficients:", model.coef_)
+print("Intercept:", model.intercept_)
+
+coef_df = pd.DataFrame({"Feature": X.columns, "Coefficient": model.coef_})
+print("Feature with highest positive coefficient:\n", coef_df.sort_values(by="Coefficient", ascending=False).head(1))
